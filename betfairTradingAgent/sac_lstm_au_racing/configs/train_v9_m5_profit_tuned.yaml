@@ -1,0 +1,77 @@
+﻿# ======================================================
+# AU Racing SAC-LSTM Training Config (V9_M5 Profit-Tuned)
+# ======================================================
+
+run_name: v9_m5_profit_tuned
+output_root: experiments
+use_wandb: false
+
+# ----------------------------
+# Environment Configuration
+# ----------------------------
+env:
+  id: saclstm_au.envs.au_replay_env_v9:AUPreOffEnvV9Replay
+  kwargs:
+    replay_dir: "G:/My Drive/race_out"     # <-- absolute path to your data
+    file_glob: "**/*.parquet"              # adjust if your files are .parquet.gz, etc.
+    max_steps_per_episode: 300
+    commission_rate: 0.05
+    reward_weights:
+      mtm_pnl: 0.6
+      worst_roi: 0.5
+      green_bonus: 0.1
+    random_start_offset: true
+    clip_reward: false
+    include_liquidity_features: true
+    track_onehot_k: null
+    verbose: true
+
+# ----------------------------
+# Agent / Algorithm Parameters
+# ----------------------------
+agent:
+  algo: SAC
+  policy: MlpLstmPolicy
+  learning_rate: 3.0e-4
+  buffer_size: 1000000
+  batch_size: 512
+  tau: 0.005
+  gamma: 0.995
+  train_freq: 64
+  gradient_steps: 1
+  learning_starts: 2048
+  ent_coef: "auto_0.08"
+  target_entropy: "auto"
+  policy_kwargs:
+    lstm_hidden_size: 256
+    net_arch: [512, 512]
+    use_sde: true
+
+# ----------------------------
+# Training Schedule
+# ----------------------------
+train:
+  total_timesteps: 1000000
+  log_interval: 1000
+  eval_interval: 100000
+  checkpoint_interval: 100000
+  deterministic_eval: true
+
+# ----------------------------
+# Metrics & Logging
+# ----------------------------
+callbacks:
+  - id: saclstm_au.training.callbacks:CSVLoggerCallback
+    kwargs:
+      log_dir: "experiments/v9_m5_profit_tuned/logs"
+      filename_pattern: "metrics_%Y%m%d_%H%M%S.csv"
+      log_interval: 1000
+      rolling_window: 1000
+
+# ----------------------------
+# Checkpoint & Resume
+# ----------------------------
+checkpoint:
+  save_path: "artifacts/models/sac_lstm/sac_v9_m5_profit_tuned.zip"
+  load_if_exists: false
+  save_best_only: true

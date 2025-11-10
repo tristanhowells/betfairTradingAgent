@@ -1,0 +1,55 @@
+﻿# Bronze → Silver → Gold pipeline controls
+schema_version: pipeline_v1
+
+ingest:
+  source: "betfair_api"            # or "replay"
+  region: "AU"
+  market_type: "WIN"
+  start_date: "2025-01-01"
+  end_date: null
+  poll_interval_ms: 250
+  depth_levels: 3
+  write_path: "data/bronze"
+  partitions: ["ds", "region", "market_type"]
+  file_format: "parquet"
+  compression: "snappy"
+  timezone: "UTC"
+  retries:
+    max_attempts: 5
+    backoff_ms: 500
+
+silver:
+  input_path: "data/bronze"
+  output_path: "data/silver/runner_ts"
+  bar_seconds: 1
+  align_missing: "ffill_limit_2"   # forward-fill up to 2s, else mark gap
+  engineered_features:
+    - "best_back_price_1, best_back_size_1"
+    - "best_lay_price_1, best_lay_size_1"
+    - "spread_ticks"
+    - "back_overround, lay_overround, overround_diff"
+    - "traded_wap_5s, traded_size_5s"
+    - "volatility_15s"
+    - "liquidity_arrival_5s"
+  write_options:
+    partition_by: ["ds"]
+    compression: "snappy"
+
+gold:
+  input_path: "data/silver/runner_ts"
+  output_path: "data/gold/episodes"
+  episode_builder:
+    t_start_s: 900
+    t_end_s: 0
+    terminate_on_inplay: true
+    action_delay_ms: 150          # env-execution latency simulation
+  reward_config_path: "configs/reward.shaping.yaml"
+  env_config_path: "configs/env.au_preoff.yaml"
+  write_options:
+    partition_by: ["ds"]
+    compression: "snappy"
+
+paper_trade:
+  enabled: true
+  config_path: "configs/execution.paper.yaml"
+  risk_overrides: null

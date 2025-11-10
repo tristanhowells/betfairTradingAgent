@@ -1,0 +1,51 @@
+# Paper-trading harness configuration (risk limits & execution settings)
+schema_version: execution_v1
+region: "AU"
+venue: "betfair"
+endpoint:
+  use_live: false                 # paper trade against delayed/replay stream when false
+  delayed_app_key_env: "BETFAIR_DELAYED_APP_KEY"
+  live_app_key_env: "BETFAIR_LIVE_APP_KEY"
+  cert_path: "./client-2048.crt"
+  key_path: "./client-2048.key"
+  login_json: "./betfair_login.json"
+
+session:
+  heartbeat_sec: 10
+  reauth_on_failure: true
+  max_retries: 5
+  backoff_ms: 500
+
+markets:
+  market_type: "WIN"
+  include_scratched: false
+  max_parallel_markets: 2
+  select_strategy: "next_AU_races"   # or "fixed_list"
+  fixed_list_file: null
+
+# Risk limits (per market)
+risk:
+  per_market_loss_bps_cap: 150       # ~1.5% worst-case loss cap
+  per_order_max_exposure: 1.0        # normalized to bankroll_unit
+  per_runner_exposure_band: 1.0
+  reject_unaffordable_orders: true
+  cancel_replace_rate_cap: 5.0
+  cooldown_on_risk_breach_s: 180
+
+bankroll:
+  bankroll_unit: 100.0               # AUD unit used to scale sizes
+  dynamic_sizing: true
+  kelly_fraction: 0.05               # only used if side-car probabilities present
+  min_order_size: 5.0                # Betfair min stake; adapter will round up
+
+execution:
+  latency_ms_mean: 120
+  latency_ms_jitter: 60
+  price_improve_ticks: 0             # 0 = post-only at current best; negative = take
+  time_in_force: "IOC"               # IOC|GTC (paper adapter simulates)
+
+logging:
+  out_dir: "experiments/paper_runs"
+  write_orders_csv: true
+  write_events_jsonl: true
+  verbose: true

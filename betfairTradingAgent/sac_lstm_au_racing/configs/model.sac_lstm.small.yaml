@@ -1,0 +1,51 @@
+# Baseline SAC-LSTM model configuration
+schema_version: model_v1
+algo: SAC
+policy: "MlpLstmPolicy"        # custom wrapper may alias to SAC+LSTM
+seed: 42
+
+network:
+  actor_hidden: [256, 256]
+  critic_hidden: [256, 256]
+  lstm_hidden: 128
+  lstm_layers: 1
+  layer_norm: true
+
+sac:
+  learning_rate: 3.0e-4
+  batch_size: 512
+  buffer_size: 1000000
+  gamma: 0.995
+  tau: 0.01
+  gradient_steps: 1
+  train_freq: 1
+  ent_coef: "auto_0.1"
+  target_update_interval: 1
+  target_entropy_scale: 1.0
+
+distributional_critic:
+  enabled: false           # set true for QR/TQC variants
+  type: "QR"               # "QR" | "TQC"
+  n_quantiles: 25          # QR only
+  truncate_top_quantiles: 0.3   # TQC only (drop top 30% optimistic quantiles)
+
+auxiliary_heads:
+  enabled: false
+  price_horizons_s: [5, 10, 15]
+  volume_horizons_s: [5, 15]
+  fill_horizons_s: [5, 10]
+  loss_weights:
+    price: 0.2
+    volume: 0.1
+    fill: 0.1
+
+training_schedule:
+  total_timesteps: 2_000_000
+  eval_freq_steps: 20_000
+  checkpoint_on_improve: true
+  tensorboard_log: "experiments/tensorboard"
+
+evaluation:
+  eval_episodes: 50
+  deterministic: true
+  risk_metrics: ["worst_roi_p95", "cvar_5pc"]

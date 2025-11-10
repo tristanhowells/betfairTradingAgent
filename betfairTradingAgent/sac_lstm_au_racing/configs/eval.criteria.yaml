@@ -1,0 +1,26 @@
+# Deterministic evaluation & checkpoint selection
+schema_version: eval_v1
+
+suite:
+  fixed_markets_file: "configs/eval_markets_100.jsonl"   # list of market_ids to replay
+  eval_episodes: 100
+  deterministic: true
+  max_episode_steps: null          # use env default
+
+improvement_rule:
+  primary_metric: "green_rate"     # higher is better
+  tie_breakers:
+    - "worst_roi_p95"              # higher (less negative) is better
+    - "mtm_roi_mean"
+  save_on_improve: true
+  always_save_final: true
+
+risk_gates:
+  require_min_green_rate: 0.55
+  require_worst_roi_p95_above_bps: -200   # -2.0% or better
+  optional_cvar_5pc_above_bps: -300       # only enforced if available
+
+logging:
+  metrics_csv: "experiments/{run}/metrics.csv"
+  charts_dir: "experiments/{run}/charts"
+  registry_manifest: "artifacts/registry.json"

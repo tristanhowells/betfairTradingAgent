@@ -1,0 +1,26 @@
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sac-lstm-au-racing"
+version = "0.1.0"
+description = "RL stack for AU racing pre-off trading (SAC baseline with frame-stacked memory)."
+authors = [{name = "Projected Construction Group Pty Ltd"}]
+requires-python = ">=3.10"
+dependencies = [
+    "gymnasium>=0.29.0",
+    "stable-baselines3>=2.3.0",
+    "sb3-contrib>=2.3.0",
+    "torch>=2.1.0",
+    "numpy>=1.26",
+    "pandas>=2.2.0",
+    "pyarrow>=15.0.0",
+    "pydantic>=2.0.0",
+    "pyyaml>=6.0",
+    "matplotlib>=3.8.0",
+]
+
+[tool.setuptools]
+packages = ["src.saclstm_au", "src.saclstm_au.envs", "src.saclstm_au.training"]

@@ -1,0 +1,16 @@
+schema_version: rshape_2025_11
+weights:
+  all_green_bonus: 1.0         # reward when all runners are >= 0 liability near suspend
+  worst_roi_penalty: 0.8       # penalize poor tail outcomes during the episode
+  mtm_roi_bonus: 0.3           # gentle push toward better MTM at T-0
+  order_spam_penalty: 0.2      # penalize excessive submit/cancel churn
+  slippage_penalty: 0.1        # penalize realized slippage vs intended price
+caps:
+  per_market_loss_bps: 150     # align with env hard cap (risk.per_market_loss_bps_cap)
+shaping:
+  terminal_all_green_bonus: 1.0
+  terminal_all_red_penalty: 1.2
+  incremental_worst_roi_penalty_scale: 1.0
+  incremental_mtm_scale: 1.0
+  spam_threshold_ratio: 3.0    # orders_submitted <= ratio * orders_filled before penalty
+  slippage_target_bps: 5
